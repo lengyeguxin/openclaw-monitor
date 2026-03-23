@@ -76,8 +76,10 @@ class ProjectModel extends BaseModel {
           return;
         }
         
-        // 获取总数
-        this.count({ status, keyword })
+        // 获取总数（keyword不支持，只传status）
+        const countWhere = {};
+        if (status) countWhere.status = status;
+        this.count(countWhere)
           .then(total => {
             resolve({
               list: rows,

@@ -91,8 +91,11 @@ class AgentModel extends BaseModel {
           return;
         }
         
-        // 获取总数
-        this.count({ status, category, keyword })
+        // 获取总数（keyword不支持，只传status和category）
+        const countWhere = {};
+        if (status) countWhere.status = status;
+        if (category) countWhere.category = category;
+        this.count(countWhere)
           .then(total => {
             resolve({
               list: rows,
@@ -131,6 +134,7 @@ class AgentModel extends BaseModel {
 
   async updateStatus(id, statusData) {
     const { status, task_id, message, metadata } = statusData;
+    const self = this;
 
     return new Promise((resolve, reject) => {
       this.db.run(
@@ -153,7 +157,7 @@ class AgentModel extends BaseModel {
               metadata: metadata ? JSON.stringify(metadata) : null
             };
 
-            this.db.run(
+            self.db.run(
               `INSERT INTO agent_status_history (id, agent_id, status, task_id, message, metadata) VALUES (?, ?, ?, ?, ?, ?)`,
               Object.values(historyData),
               (err) => {

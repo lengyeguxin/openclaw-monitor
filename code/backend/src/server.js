@@ -18,8 +18,7 @@ const PORT = process.env.PORT || 3001;
 const DB_PATH = '/home/my/.openclaw/ai-project/openclaw-monitor/data/monitor.db';
 
 // 创建数据库实例
-const Database = require('./models/database');
-const db = new Database(DB_PATH);
+const db = require('./config/database');
 
 // 中间件
 app.use(corsMiddleware);
