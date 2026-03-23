@@ -15,9 +15,9 @@
       ]
     },
     "需求分析": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "started_at": "2026-03-23T20:38:00+08:00",
+      "completed_at": "2026-03-23T20:45:00+08:00",
       "reviewed_at": null,
       "prerequisites": [
         {"file": "doc/project-plan.md", "check": "exists"}
