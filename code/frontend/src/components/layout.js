@@ -1,0 +1,76 @@
+import React from 'react';
+
+// 布局组件：Sidebar - 侧边栏导航
+export function Sidebar({ children, activeTab, onTabChange }) {
+  const tabs = [
+    { id: 'dashboard', label: '仪表盘', icon: '📊' },
+    { id: 'agents', label: '智能体', icon: '🤖' },
+    { id: 'projects', label: '项目', icon: '📋' },
+  ];
+
+  return (
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">OpenClaw Monitor</h1>
+        </div>
+        <nav className="p-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange && onTabChange(tab.id)}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <span className="text-lg">{tab.icon}</span>
+              <span className="font-medium">{tab.label}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            v1.0.0 • {new Date().getFullYear()}
+          </p>
+        </div>
+      </aside>
+      <main className="flex-1 overflow-auto">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// 导航栏组件
+export function Navbar({ title, action }) {
+  return (
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{title}</h2>
+        {action && <div>{action}</div>}
+      </div>
+    </header>
+  );
+}
+
+// 统计卡片组件
+export function StatCard({ title, value, subtitle, trend, trendUp }) {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{title}</h3>
+      <div className="flex items-baseline space-x-2">
+        <span className="text-3xl font-bold text-gray-900 dark:text-white">{value}</span>
+        {trend && (
+          <span className={`text-sm font-medium ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
+            {trend}
+          </span>
+        )}
+      </div>
+      {subtitle && (
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{subtitle}</p>
+      )}
+    </div>
+  );
+}

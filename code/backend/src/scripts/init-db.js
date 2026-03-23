@@ -12,7 +12,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Configuration
 const BASE_DIR = '/home/my/.openclaw';
@@ -335,25 +334,35 @@ END;
 // Insert agents into database
 function insertAgents(db, agents) {
   return new Promise((resolve, reject) => {
-    const stmt = db.prepare(`
-      INSERT INTO agents (id, name, description, category, status, capabilities)
-      VALUES (?, ?, ?, ?, 'idle', ?
-    )`);
-    
     let count = 0;
+    let batch = 0;
+    const batchSize = 100;
     
-    agents.forEach(agent => {
-      const capabilities = JSON.stringify(['general']);
-      stmt.run(agent.id, agent.name, agent.description, agent.category, capabilities);
-      count++;
-    });
-    
-    stmt.finalize((err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(count);
-      }
+    db.serialize(() => {
+      db.run('BEGIN TRANSACTION');
+      
+      agents.forEach(agent => {
+        const capabilities = JSON.stringify(['general']);
+        db.run(
+          'INSERT INTO agents (id, name, description, category, status, capabilities) VALUES (?, ?, ?, ?, ?, ?)',
+          [agent.id, agent.name, agent.description, agent.category, 'idle', capabilities]
+        );
+        count++;
+        
+        // Commit every batchSize inserts
+        if (count % batchSize === 0) {
+          db.run('COMMIT TRANSACTION');
+          db.run('BEGIN TRANSACTION');
+        }
+      });
+      
+      db.run('COMMIT TRANSACTION', (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(count);
+        }
+      });
     });
   });
 }
@@ -391,8 +400,8 @@ function insertSampleData(db) {
         // Insert project
         db.run(`
           INSERT INTO projects (id, name, description, status, progress)
-          VALUES (?, ?, ?, 'active', 45)
-        `, [projectId, 'OpenClaw Monitor', '智能体监控系统']);
+          VALUES (?, ?, ?, ?, ?)
+        `, [projectId, 'OpenClaw Monitor', '智能体监控系统', 'active', 45]);
         
         // Insert stages
         stageIds.forEach(stage => {
@@ -417,8 +426,8 @@ function insertSampleData(db) {
         // Insert tasks
         taskData.forEach(task => {
           db.run(`
-            INSERT INTO tasks (id, project_id, stage_id, name, description, status, priority, progress, estimated_hours)
-            VALUES (?, ?, ?, ?, ?, ?, 'medium', ?, ?, ?)
+            INSERT INTO tasks (id, project_id, stage_id, name, description, status, priority, progress, estimated_hours, actual_hours)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `, [
             task.id,
             projectId,
@@ -426,9 +435,11 @@ function insertSampleData(db) {
             task.name,
             task.desc,
             task.status,
+            'medium',
             task.status === 'completed' ? 100 : (task.status === 'running' ? 60 : 0),
-            task.status === 'completed' ? 4 : (task.status === 'running' ? 8 : 6),
-            task.status === 'completed' ? 6 : (task.status === 'running' ? 5 : 0)
+            task.status === 'completed' ? 6 : (task.status === 'running' ? 8 : 5),
+            task.status === 'completed' ? 6 : (task.status === 'running' ? 5 : 0),
+            task.status === 'completed' ? 4 : (task.status === 'running' ? 3 : 0)
           ]);
         });
         

@@ -1,24 +1,21 @@
-require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const morgan = require('morgan');
+require('dotenv').config();
 
 // 导入中间件
 const { corsMiddleware, preflightMiddleware } = require('./middleware/cors');
 const { errorHandler } = require('./middleware/errorHandler');
 
 // 导入路由
-const agentsRoute = require('./routes/agents');
-const projectsRoute = require('./routes/projects');
-const stagesRoute = require('./routes/stages');
-const tasksRoute = require('./routes/tasks');
+const apiRoute = require('./routes/api');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// 数据库路径
-const DB_PATH = path.resolve(__dirname, '../../data/monitor.db');
+// 数据库路径（绝对路径）
+const DB_PATH = '/home/my/.openclaw/ai-project/openclaw-monitor/data/monitor.db';
 
 // 创建数据库实例
 const Database = require('./models/database');
@@ -34,11 +31,8 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-// 路由
-app.use('/api/v1/agents', agentsRoute);
-app.use('/api/v1/projects', projectsRoute);
-app.use('/api/v1/stages', stagesRoute);
-app.use('/api/v1/tasks', tasksRoute);
+// API 路由
+app.use('/api/v1', apiRoute);
 
 // 健康检查
 app.get('/health', (req, res) => {
