@@ -1,0 +1,18 @@
+{
+  "name": "openclaw-monitor-backend",
+  "version": "1.0.0",
+  "description": "OpenClaw Monitor Backend Service",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-validator": "^7.0.1",
+    "uuid": "^9.0.0"
+  }
+}
