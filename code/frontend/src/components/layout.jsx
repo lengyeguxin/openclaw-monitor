@@ -74,3 +74,47 @@ export function StatCard({ title, value, subtitle, trend, trendUp }) {
     </div>
   );
 }
+
+// 分页组件
+export function Pagination({ page, total, limit, onPageChange, onLimitChange }) {
+  const totalPages = Math.ceil(total / limit);
+  
+  return (
+    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sm:px-6">
+      <div className="flex items-center">
+        <span className="text-sm text-gray-700 dark:text-gray-300">
+          显示 {Math.min((page - 1) * limit + 1, total)}-{Math.min(page * limit, total)} 共 {total} 条
+        </span>
+        <select
+          value={limit}
+          onChange={(e) => onLimitChange && onLimitChange(Number(e.target.value))}
+          className="ml-3 block w-16 rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          <option value="10">10 条/页</option>
+          <option value="20">20 条/页</option>
+          <option value="50">50 条/页</option>
+          <option value="100">100 条/页</option>
+        </select>
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => onPageChange && onPageChange(Math.max(1, page - 1))}
+          disabled={page === 1}
+          className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+        >
+          上一页
+        </button>
+        <span className="text-sm text-gray-700 dark:text-gray-300">
+          第 {page} / {totalPages} 页
+        </span>
+        <button
+          onClick={() => onPageChange && onPageChange(Math.min(totalPages, page + 1))}
+          disabled={page === totalPages}
+          className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+        >
+          下一页
+        </button>
+      </div>
+    </div>
+  );
+}

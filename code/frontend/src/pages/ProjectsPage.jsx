@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Navbar, Pagination } from '../components/layout';
-import { agentApi } from '../api';
+import { Sidebar, Navbar } from '../components/layout';
+import { Pagination } from '../components/layout';
+import { projectApi, stageApi, taskApi } from '../api';
 import { Badge, SearchBar, DataTable } from '../components/ui';
 import { usePagination, useDebounce } from '../hooks';
 
-function AgentsPage() {
+function ProjectsPage() {
   const { page, limit, changePage, changeLimit } = usePagination();
-  const [agents, setAgents] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [categories, setCategories] = useState([]);
 
   const debouncedKeyword = useDebounce(searchKeyword, 300);
 
   useEffect(() => {
-    const fetchAgents = async () => {
+    const fetchProjects = async () => {
       setLoading(true);
       try {
         const params = {
@@ -25,30 +24,20 @@ function AgentsPage() {
           limit,
           keyword: debouncedKeyword || undefined,
           status: statusFilter || undefined,
-          category: categoryFilter || undefined,
         };
         
-        const response = await agentApi.getList(params);
-        setAgents(response.data?.list || []);
+        const response = await projectApi.getList(params);
+        setProjects(response.data?.list || []);
         setTotal(response.data?.pagination?.total || 0);
-        
-        // 获取分类列表
-        if (response.data?.list?.length > 0) {
-          const allCategories = new Set();
-          response.data.list.forEach(agent => {
-            if (agent.category) allCategories.add(agent.category);
-          });
-          setCategories(Array.from(allCategories));
-        }
       } catch (error) {
-        console.error('获取智能体列表失败:', error);
+        console.error('获取项目列表失败:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAgents();
-  }, [page, limit, debouncedKeyword, statusFilter, categoryFilter]);
+    fetchProjects();
+  }, [page, limit, debouncedKeyword, statusFilter]);
 
   const columns = [
     {
@@ -62,19 +51,34 @@ function AgentsPage() {
       ),
     },
     {
-      title: '分类',
-      dataIndex: 'category',
-      render: (text) => <Badge status={text?.replace('agent_', '') || 'idle'} />,
-    },
-    {
       title: '状态',
       dataIndex: 'status',
       render: (text) => <Badge status={text} />,
     },
     {
-      title: '当前任务',
-      dataIndex: 'current_task_id',
+      title: '当前阶段',
+      dataIndex: 'current_stage',
       render: (text) => text || '无',
+    },
+    {
+      title: '进度',
+      dataIndex: 'progress',
+      render: (text) => (
+        <div className="flex items-center">
+          <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2 mr-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full"
+              style={{ width: `${text}%` }}
+            ></div>
+          </div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">{text}%</span>
+        </div>
+      ),
+    },
+    {
+      title: '任务数',
+      dataIndex: 'task_count',
+      render: (text, record) => `${record.completed_task_count}/${text}`,
     },
     {
       title: '创建时间',
@@ -85,14 +89,14 @@ function AgentsPage() {
 
   return (
     <div className="min-h-screen">
-      <Navbar title="智能体管理" />
+      <Navbar title="项目管理" />
       <div className="p-6">
         {/* 筛选条件 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-6">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-xs">
               <SearchBar
-                placeholder="搜索智能体名称或描述..."
+                placeholder="搜索项目名称..."
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
               />
@@ -104,35 +108,23 @@ function AgentsPage() {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="">所有状态</option>
-                <option value="idle">空闲</option>
-                <option value="running">运行中</option>
-                <option value="error">错误</option>
-                <option value="offline">离线</option>
-              </select>
-            </div>
-            <div className="w-48">
-              <select
-                className="w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                <option value="">所有分类</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
+                <option value="draft">草稿</option>
+                <option value="active">进行中</option>
+                <option value="completed">已完成</option>
+                <option value="archived">已归档</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* 智能体列表 */}
+        {/* 项目列表 */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : (
           <>
-            <DataTable columns={columns} data={agents} />
+            <DataTable columns={columns} data={projects} />
             
             <Pagination
               page={page}
@@ -148,4 +140,4 @@ function AgentsPage() {
   );
 }
 
-export default AgentsPage;
+export default ProjectsPage;
