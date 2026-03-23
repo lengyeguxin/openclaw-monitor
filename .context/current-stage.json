@@ -1,7 +1,7 @@
 {
   "project_name": "openclaw-monitor",
   "project_description": "多智能体监控台 - 智能体状态监控、项目进度监控、任务分配跟踪",
-  "current_stage": "阶段规划",
+  "current_stage": "系统设计",
   "stages": {
     "阶段规划": {
       "status": "completed",
@@ -27,9 +27,9 @@
       ]
     },
     "系统设计": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null,
+      "status": "completed",
+      "started_at": "2026-03-23T20:55:00+08:00",
+      "completed_at": "2026-03-23T21:00:00+08:00",
       "reviewed_at": null,
       "prerequisites": [
         {"file": "doc/requirements.md", "check": "exists_and_reviewed"}
