@@ -16,7 +16,7 @@
 | 前端 | React 18 + Vite + Tailwind CSS | 轻量、快速开发 |
 | 后端 | Node.js + Express | 简单、成熟 |
 | 数据库 | SQLite | 零配置、本地存储 |
-| 实时通信 | WebSocket (ws) | 状态推送 |
+| 状态更新 | HTTP API + 轮询 | 智能体调用API更新状态 |
 | 构建 | Vite | 快速热更新 |
 
 ---
@@ -79,18 +79,23 @@
 | morgan | latest | 请求日志 |
 | dotenv | latest | 环境变量 |
 
-### 4.4 实时通信
+### 4.4 状态更新机制
 
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| ws | 8.x | WebSocket服务器 |
+**智能体主动上报**：
+- 接收任务时 → 调用 API → 状态改为"任务中"
+- 执行任务时 → 调用 API → 更新任务进度
+- 结束任务时 → 调用 API → 状态改为"空闲"
+
+**前端获取状态**：
+- 用户主动刷新页面
+- 或前端定时轮询（如每30秒）
 
 ### 4.5 选择理由
 
 - **Express**：简单、文档丰富、社区活跃
 - **SQLite**：零配置、单文件存储、适合本地部署
 - **better-sqlite3**：同步API，性能更好
-- **ws**：轻量、稳定、无依赖
+- **HTTP API + 轮询**：简单可靠，无需维护WebSocket连接
 
 ---
 
@@ -144,13 +149,12 @@
 | `/api/tasks/:id` | GET | 获取任务详情 |
 | `/api/dashboard/stats` | GET | 获取仪表盘统计 |
 
-### 6.2 WebSocket 事件
+### 6.2 状态更新 API
 
-| 事件 | 方向 | 描述 |
+| 端点 | 方法 | 描述 |
 |------|------|------|
-| `agent:status:update` | Server → Client | 智能体状态更新 |
-| `task:status:update` | Server → Client | 任务状态更新 |
-| `project:progress:update` | Server → Client | 项目进度更新 |
+| `/api/agents/:id/status` | POST | 智能体上报状态更新 |
+| `/api/tasks/:id/progress` | POST | 任务进度更新 |
 
 ---
 
