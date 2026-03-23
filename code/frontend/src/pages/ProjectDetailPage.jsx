@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Sidebar, Navbar } from '../components/layout';
-import { Pagination } from '../components/layout';
-import { projectApi, stageApi, taskApi } from '../api';
-import { Badge, DataTable } from '../components/ui';
-import { usePagination } from '../hooks';
+import { Sidebar, Navbar } from '../components/layout.jsx';
+import { Pagination } from '../components/layout.jsx';
+import { projectApi, stageApi, taskApi } from '../api/index.jsx';
+import { Badge, DataTable } from '../components/ui.jsx';
+import { usePagination } from '../hooks/index.jsx';
 
 function ProjectDetailPage() {
   const { id } = useParams();

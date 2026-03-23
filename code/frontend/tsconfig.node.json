@@ -1,14 +1,9 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node",
   "compilerOptions": {
-    "lib": ["ES2022"],
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "noEmit": true
+    "allowSyntheticDefaultImports": true
   },
   "include": ["vite.config.js"]
 }

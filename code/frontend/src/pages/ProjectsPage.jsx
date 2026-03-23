@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Navbar } from '../components/layout';
-import { Pagination } from '../components/layout';
-import { projectApi, stageApi, taskApi } from '../api';
-import { Badge, SearchBar, DataTable } from '../components/ui';
-import { usePagination, useDebounce } from '../hooks';
+import { Sidebar, Navbar } from '../components/layout.jsx';
+import { Pagination } from '../components/layout.jsx';
+import { projectApi, stageApi, taskApi } from '../api/index.jsx';
+import { Badge, SearchBar, DataTable } from '../components/ui.jsx';
+import { usePagination, useDebounce } from '../hooks/index.jsx';
 
 function ProjectsPage() {
   const { page, limit, changePage, changeLimit } = usePagination();

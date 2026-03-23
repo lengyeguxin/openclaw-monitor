@@ -10,6 +10,7 @@
  */
 
 const sqlite3 = require('sqlite3').verbose();
+const { promisify } = require('util');
 const fs = require('fs');
 const path = require('path');
 
@@ -133,17 +134,9 @@ function getAllAgents() {
   return agents;
 }
 
-// Generate UUID-like ID
-function generateId() {
-  const prefix = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  return `${prefix}-${random}`;
-}
-
 // Create database schema
-function createSchema(db) {
-  return new Promise((resolve, reject) => {
-    const schema = `
+async function createSchema(db) {
+  const schema = `
 -- Enable foreign keys
 PRAGMA foreign_keys = ON;
 
@@ -291,166 +284,177 @@ CREATE INDEX idx_task_agents_agent ON task_agents(agent_id);
 -- 智能体状态历史表索引
 CREATE INDEX idx_agent_history_agent ON agent_status_history(agent_id);
 CREATE INDEX idx_agent_history_created ON agent_status_history(created_at);
-
--- ============================================
--- 触发器：自动更新时间戳
--- ============================================
-
-CREATE TRIGGER IF NOT EXISTS update_agents_timestamp 
-AFTER UPDATE ON agents
-BEGIN
-    UPDATE agents SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS update_projects_timestamp 
-AFTER UPDATE ON projects
-BEGIN
-    UPDATE projects SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS update_stages_timestamp 
-AFTER UPDATE ON stages
-BEGIN
-    UPDATE stages SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS update_tasks_timestamp 
-AFTER UPDATE ON tasks
-BEGIN
-    UPDATE tasks SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-END;
 `;
 
+  await new Promise((resolve, reject) => {
     db.exec(schema, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
+      if (err) reject(err);
+      else resolve();
     });
   });
 }
 
 // Insert agents into database
-function insertAgents(db, agents) {
+async function insertAgents(db, agents) {
+  let count = 0;
+  
   return new Promise((resolve, reject) => {
-    let count = 0;
-    let batch = 0;
-    const batchSize = 100;
-    
     db.serialize(() => {
       db.run('BEGIN TRANSACTION');
       
-      agents.forEach(agent => {
+      let i = 0;
+      function insertNext() {
+        if (i >= agents.length) {
+          db.run('COMMIT', (err) => {
+            if (err) {
+              db.run('ROLLBACK');
+              reject(err);
+            } else {
+              resolve(count);
+            }
+          });
+          return;
+        }
+        
+        const agent = agents[i];
         const capabilities = JSON.stringify(['general']);
         db.run(
           'INSERT INTO agents (id, name, description, category, status, capabilities) VALUES (?, ?, ?, ?, ?, ?)',
-          [agent.id, agent.name, agent.description, agent.category, 'idle', capabilities]
+          [agent.id, agent.name, agent.description, agent.category, 'idle', capabilities],
+          (err) => {
+            if (err) {
+              db.run('ROLLBACK');
+              reject(err);
+            } else {
+              count++;
+              i++;
+              insertNext();
+            }
+          }
         );
-        count++;
-        
-        // Commit every batchSize inserts
-        if (count % batchSize === 0) {
-          db.run('COMMIT TRANSACTION');
-          db.run('BEGIN TRANSACTION');
-        }
-      });
+      }
       
-      db.run('COMMIT TRANSACTION', (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(count);
-        }
-      });
+      insertNext();
     });
   });
 }
 
 // Insert sample project data
-function insertSampleData(db) {
+async function insertSampleData(db) {
+  const projectId = 'proj_001';
+  const stageIds = [
+    { id: 'stage_001', name: '需求分析', order: 1, status: 'completed' },
+    { id: 'stage_002', name: '系统设计', order: 2, status: 'completed' },
+    { id: 'stage_003', name: '开发实现', order: 3, status: 'active' },
+    { id: 'stage_004', name: '系统测试', order: 4, status: 'pending' },
+    { id: 'stage_005', name: '部署上线', order: 5, status: 'pending' }
+  ];
+  
+  const taskData = [
+    { id: 'task_001', stageId: 'stage_001', name: '编写需求规格说明书', desc: '编写详细的需求分析文档', status: 'completed' },
+    { id: 'task_002', stageId: 'stage_001', name: '用户故事整理', desc: '整理用户故事和验收标准', status: 'completed' },
+    { id: 'task_003', stageId: 'stage_002', name: '系统架构设计', desc: '设计系统整体架构', status: 'completed' },
+    { id: 'task_004', stageId: 'stage_002', name: 'API接口设计', desc: '设计RESTful API接口', status: 'completed' },
+    { id: 'task_005', stageId: 'stage_002', name: '数据库设计', desc: '设计数据库表结构', status: 'completed' },
+    { id: 'task_006', stageId: 'stage_003', name: '后端基础框架搭建', desc: '搭建Express后端框架', status: 'completed' },
+    { id: 'task_007', stageId: 'stage_003', name: '前端项目初始化', desc: '初始化React项目', status: 'completed' },
+    { id: 'task_008', stageId: 'stage_003', name: '智能体管理API开发', desc: '开发智能体CRUD接口', status: 'running' },
+    { id: 'task_009', stageId: 'stage_003', name: '项目管理API开发', desc: '开发项目CRUD接口', status: 'pending' },
+    { id: 'task_010', stageId: 'stage_003', name: '前端页面开发', desc: '开发前端页面组件', status: 'pending' }
+  ];
+  
   return new Promise((resolve, reject) => {
-    const projectId = 'proj_001';
-    const stageIds = [
-      { id: 'stage_001', name: '需求分析', order: 1, status: 'completed' },
-      { id: 'stage_002', name: '系统设计', order: 2, status: 'completed' },
-      { id: 'stage_003', name: '开发实现', order: 3, status: 'active' },
-      { id: 'stage_004', name: '系统测试', order: 4, status: 'pending' },
-      { id: 'stage_005', name: '部署上线', order: 5, status: 'pending' }
-    ];
-    
-    const taskData = [
-      { id: 'task_001', stageId: 'stage_001', name: '编写需求规格说明书', desc: '编写详细的需求分析文档', status: 'completed' },
-      { id: 'task_002', stageId: 'stage_001', name: '用户故事整理', desc: '整理用户故事和验收标准', status: 'completed' },
-      { id: 'task_003', stageId: 'stage_002', name: '系统架构设计', desc: '设计系统整体架构', status: 'completed' },
-      { id: 'task_004', stageId: 'stage_002', name: 'API接口设计', desc: '设计RESTful API接口', status: 'completed' },
-      { id: 'task_005', stageId: 'stage_002', name: '数据库设计', desc: '设计数据库表结构', status: 'completed' },
-      { id: 'task_006', stageId: 'stage_003', name: '后端基础框架搭建', desc: '搭建Express后端框架', status: 'completed' },
-      { id: 'task_007', stageId: 'stage_003', name: '前端项目初始化', desc: '初始化React项目', status: 'completed' },
-      { id: 'task_008', stageId: 'stage_003', name: '智能体管理API开发', desc: '开发智能体CRUD接口', status: 'running' },
-      { id: 'task_009', stageId: 'stage_003', name: '项目管理API开发', desc: '开发项目CRUD接口', status: 'pending' },
-      { id: 'task_010', stageId: 'stage_003', name: '前端页面开发', desc: '开发前端页面组件', status: 'pending' }
-    ];
-    
     db.serialize(() => {
-      // Start transaction
       db.run('BEGIN TRANSACTION');
       
-      try {
-        // Insert project
-        db.run(`
-          INSERT INTO projects (id, name, description, status, progress)
-          VALUES (?, ?, ?, ?, ?)
-        `, [projectId, 'OpenClaw Monitor', '智能体监控系统', 'active', 45]);
-        
-        // Insert stages
-        stageIds.forEach(stage => {
-          db.run(`
-            INSERT INTO stages (id, project_id, name, "order", description, status, task_count, completed_task_count)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `, [
-            stage.id,
-            projectId,
-            stage.name,
-            stage.order,
-            `${stage.name}阶段详细描述`,
-            stage.status,
-            stage.id === 'stage_001' ? 5 : (stage.id === 'stage_002' ? 3 : (stage.id === 'stage_003' ? 10 : (stage.id === 'stage_004' ? 5 : 2))),
-            stage.status === 'completed' ? (stage.id === 'stage_001' ? 5 : (stage.id === 'stage_002' ? 3 : 0)) : 0
-          ]);
+      const ops = [];
+      
+      // Insert project
+      ops.push((cb) => {
+        db.run(
+          'INSERT INTO projects (id, name, description, status, progress) VALUES (?, ?, ?, ?, ?)',
+          [projectId, 'OpenClaw Monitor', '智能体监控系统', 'active', 45],
+          cb
+        );
+      });
+      
+      // Insert stages
+      stageIds.forEach(stage => {
+        ops.push((cb) => {
+          db.run(
+            'INSERT INTO stages (id, project_id, name, "order", description, status, task_count, completed_task_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+              stage.id,
+              projectId,
+              stage.name,
+              stage.order,
+              stage.name + '阶段详细描述',
+              stage.status,
+              stage.id === 'stage_001' ? 5 : (stage.id === 'stage_002' ? 3 : (stage.id === 'stage_003' ? 10 : (stage.id === 'stage_004' ? 5 : 2))),
+              stage.status === 'completed' ? (stage.id === 'stage_001' ? 5 : (stage.id === 'stage_002' ? 3 : 0)) : 0
+            ],
+            cb
+          );
         });
-        
-        // Update project current stage
-        db.run(`UPDATE projects SET current_stage_id = ? WHERE id = ?`, ['stage_003', projectId]);
-        
-        // Insert tasks
-        taskData.forEach(task => {
-          db.run(`
-            INSERT INTO tasks (id, project_id, stage_id, name, description, status, priority, progress, estimated_hours, actual_hours)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `, [
-            task.id,
-            projectId,
-            task.stageId,
-            task.name,
-            task.desc,
-            task.status,
-            'medium',
-            task.status === 'completed' ? 100 : (task.status === 'running' ? 60 : 0),
-            task.status === 'completed' ? 6 : (task.status === 'running' ? 8 : 5),
-            task.status === 'completed' ? 6 : (task.status === 'running' ? 5 : 0),
-            task.status === 'completed' ? 4 : (task.status === 'running' ? 3 : 0)
-          ]);
+      });
+      
+      // Update project current stage
+      ops.push((cb) => {
+        db.run(
+          'UPDATE projects SET current_stage_id = ? WHERE id = ?',
+          ['stage_003', projectId],
+          cb
+        );
+      });
+      
+      // Insert tasks
+      taskData.forEach(task => {
+        ops.push((cb) => {
+          db.run(
+            'INSERT INTO tasks (id, project_id, stage_id, name, description, status, priority, progress, estimated_hours, actual_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+              task.id,
+              projectId,
+              task.stageId,
+              task.name,
+              task.desc,
+              task.status,
+              'medium',
+              task.status === 'completed' ? 100 : (task.status === 'running' ? 60 : 0),
+              task.status === 'completed' ? 6 : (task.status === 'running' ? 8 : 5),
+              task.status === 'completed' ? 4 : (task.status === 'running' ? 3 : 0)
+            ],
+            cb
+          );
         });
+      });
+      
+      // Execute all operations sequentially
+      let current = 0;
+      function executeNext(err) {
+        if (err) {
+          db.run('ROLLBACK');
+          reject(err);
+          return;
+        }
         
-        // Commit transaction
-        db.run('COMMIT');
-        resolve(stageIds.length + taskData.length);
+        if (current >= ops.length) {
+          db.run('COMMIT', (err) => {
+            if (err) {
+              db.run('ROLLBACK');
+              reject(err);
+            } else {
+              resolve(stageIds.length + taskData.length);
+            }
+          });
+          return;
+        }
         
-      } catch (err) {
-        db.run('ROLLBACK');
-        reject(err);
+        ops[current](executeNext);
+        current++;
       }
+      
+      executeNext();
     });
   });
 }
@@ -519,14 +523,18 @@ async function main() {
     
     // List all tables
     console.log(`\n📋 Tables created:`);
-    db.all(`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`, (err, rows) => {
-      if (!err) {
-        rows.forEach(row => console.log(`   - ${row.name}`));
-      }
+    const tables = await new Promise((resolve, reject) => {
+      db.all(`SELECT name FROM sqlite_master WHERE type='table' ORDER BY name`, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
     });
+    tables.forEach(row => console.log(`   - ${row.name}`));
     
-    // Close connection
-    db.close();
+    // Close connection properly
+    db.close((err) => {
+      if (err) console.log('Close warning:', err.message);
+    });
     
   } catch (err) {
     console.error('❌ Error:', err.message);

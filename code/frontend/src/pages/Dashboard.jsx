@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, Navbar, StatCard } from '../components/layout';
-import { agentApi, projectApi } from '../api';
-import { Badge } from '../components/ui';
+import { Sidebar, Navbar, StatCard } from '../components/layout.jsx';
+import { agentApi, projectApi } from '../api/index.jsx';
+import { Badge } from '../components/ui.jsx';
 
 function Dashboard() {
   const [stats, setStats] = useState({

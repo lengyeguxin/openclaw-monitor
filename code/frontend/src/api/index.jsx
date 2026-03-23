@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './config';
+import { API_BASE_URL } from '../config.jsx';
 
 // 通用 API 错误类
 export class ApiError extends Error {

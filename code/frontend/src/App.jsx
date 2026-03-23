@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import AgentsPage from './pages/AgentsPage';
-import ProjectsPage from './pages/ProjectsPage';
-import ProjectDetailPage from './pages/ProjectDetailPage';
-import { Sidebar } from './components/layout';
+import Dashboard from './pages/Dashboard.jsx';
+import AgentsPage from './pages/AgentsPage.jsx';
+import ProjectsPage from './pages/ProjectsPage.jsx';
+import ProjectDetailPage from './pages/ProjectDetailPage.jsx';
+import { Sidebar } from './components/layout.jsx';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
