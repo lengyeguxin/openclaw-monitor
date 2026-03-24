@@ -112,8 +112,8 @@ class TaskModel extends BaseModel {
           return;
         }
         
-        // 获取总数
-        this.count({ project_id, stage_id, status, priority, keyword })
+        // 获取总数 - 使用自定义count查询
+        this.countTasks({ project_id, stage_id, status, priority, keyword })
           .then(total => {
             resolve({
               list: rows,
@@ -126,6 +126,58 @@ class TaskModel extends BaseModel {
             });
           })
           .catch(reject);
+      });
+    });
+  }
+
+  // 自定义任务计数方法，支持keyword搜索
+  async countTasks({ project_id, stage_id, status, priority, keyword }) {
+    let sql = `
+      SELECT COUNT(DISTINCT t.id) as total 
+      FROM tasks t
+      LEFT JOIN stages s ON s.id = t.stage_id
+      LEFT JOIN projects p ON p.id = s.project_id
+    `;
+    
+    const params = [];
+    const conditions = [];
+
+    if (project_id) {
+      conditions.push('t.project_id = ?');
+      params.push(project_id);
+    }
+
+    if (stage_id) {
+      conditions.push('t.stage_id = ?');
+      params.push(stage_id);
+    }
+
+    if (status) {
+      conditions.push('t.status = ?');
+      params.push(status);
+    }
+
+    if (priority) {
+      conditions.push('t.priority = ?');
+      params.push(priority);
+    }
+
+    if (keyword) {
+      conditions.push('(t.name LIKE ? OR t.description LIKE ?)');
+      params.push(`%${keyword}%`, `%${keyword}%`);
+    }
+
+    if (conditions.length > 0) {
+      sql += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    return new Promise((resolve, reject) => {
+      this.db.get(sql, params, (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(row ? row.total : 0);
       });
     });
   }

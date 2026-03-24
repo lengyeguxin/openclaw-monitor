@@ -1,12 +1,30 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // 布局组件：Sidebar - 侧边栏导航
-export function Sidebar({ children, activeTab, onTabChange }) {
+export function Sidebar({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const tabs = [
-    { id: 'dashboard', label: '仪表盘', icon: '📊' },
-    { id: 'agents', label: '智能体', icon: '🤖' },
-    { id: 'projects', label: '项目', icon: '📋' },
+    { id: 'dashboard', label: '仪表盘', icon: '📊', path: '/' },
+    { id: 'agents', label: '智能体', icon: '🤖', path: '/agents' },
+    { id: 'projects', label: '项目', icon: '📋', path: '/projects' },
   ];
+
+  // 根据当前路径确定激活的标签
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.startsWith('/agents')) return 'agents';
+    if (path.startsWith('/projects')) return 'projects';
+    return 'dashboard';
+  };
+
+  const activeTab = getActiveTab();
+
+  const handleTabClick = (tab) => {
+    navigate(tab.path);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -18,7 +36,7 @@ export function Sidebar({ children, activeTab, onTabChange }) {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => onTabChange && onTabChange(tab.id)}
+              onClick={() => handleTabClick(tab)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                 activeTab === tab.id
                   ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
