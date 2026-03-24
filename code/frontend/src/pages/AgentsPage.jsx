@@ -5,6 +5,28 @@ import { agentApi } from '../api/index.jsx';
 import { Badge, SearchBar, DataTable } from '../components/ui.jsx';
 import { usePagination, useDebounce } from '../hooks/index.jsx';
 
+// 预定义的中文分类列表（基于 agency-agents-zh 的 17 个部门）
+const CATEGORY_OPTIONS = [
+  { value: '', label: '所有分类' },
+  { value: '工程部', label: '工程部' },
+  { value: '设计部', label: '设计部' },
+  { value: '营销部', label: '营销部' },
+  { value: '付费媒体部', label: '付费媒体部' },
+  { value: '销售部', label: '销售部' },
+  { value: '财务部', label: '财务部' },
+  { value: '人力资源部', label: '人力资源部' },
+  { value: '法务部', label: '法务部' },
+  { value: '供应链部', label: '供应链部' },
+  { value: '产品部', label: '产品部' },
+  { value: '项目管理部', label: '项目管理部' },
+  { value: '测试部', label: '测试部' },
+  { value: '支持部', label: '支持部' },
+  { value: '专业部', label: '专业部' },
+  { value: '空间计算部', label: '空间计算部' },
+  { value: '游戏开发部', label: '游戏开发部' },
+  { value: '学术部', label: '学术部' },
+];
+
 function AgentsPage() {
   const { page, limit, changePage, changeLimit } = usePagination();
   const [agents, setAgents] = useState([]);
@@ -13,7 +35,6 @@ function AgentsPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [categories, setCategories] = useState([]);
 
   const debouncedKeyword = useDebounce(searchKeyword, 300);
 
@@ -32,15 +53,6 @@ function AgentsPage() {
         const response = await agentApi.getList(params);
         setAgents(response.data?.list || []);
         setTotal(response.data?.pagination?.total || 0);
-        
-        // 获取分类列表
-        if (response.data?.list?.length > 0) {
-          const allCategories = new Set();
-          response.data.list.forEach(agent => {
-            if (agent.category) allCategories.add(agent.category);
-          });
-          setCategories(Array.from(allCategories));
-        }
       } catch (error) {
         console.error('获取智能体列表失败:', error);
       } finally {
@@ -117,9 +129,8 @@ function AgentsPage() {
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
               >
-                <option value="">所有分类</option>
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>

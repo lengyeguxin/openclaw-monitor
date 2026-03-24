@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar, Navbar } from '../components/layout.jsx';
 import { Pagination } from '../components/layout.jsx';
 import { projectApi, stageApi, taskApi } from '../api/index.jsx';
@@ -6,6 +7,7 @@ import { Badge, SearchBar, DataTable } from '../components/ui.jsx';
 import { usePagination, useDebounce } from '../hooks/index.jsx';
 
 function ProjectsPage() {
+  const navigate = useNavigate();
   const { page, limit, changePage, changeLimit } = usePagination();
   const [projects, setProjects] = useState([]);
   const [total, setTotal] = useState(0);
@@ -39,12 +41,19 @@ function ProjectsPage() {
     fetchProjects();
   }, [page, limit, debouncedKeyword, statusFilter]);
 
+  const handleRowClick = (record) => {
+    navigate(`/projects/${record.id}`);
+  };
+
   const columns = [
     {
       title: '名称',
       dataIndex: 'name',
       render: (text, record) => (
-        <div>
+        <div 
+          className="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+          onClick={() => handleRowClick(record)}
+        >
           <div className="font-medium text-gray-900 dark:text-white">{text}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400">{record.description}</div>
         </div>
@@ -124,7 +133,7 @@ function ProjectsPage() {
           </div>
         ) : (
           <>
-            <DataTable columns={columns} data={projects} />
+            <DataTable columns={columns} data={projects} onRowClick={handleRowClick} />
             
             <Pagination
               page={page}

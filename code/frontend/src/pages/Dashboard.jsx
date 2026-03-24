@@ -147,7 +147,10 @@ function Dashboard() {
                   agents.map((agent) => (
                     <div key={agent.id} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900 dark:text-white">{agent.name}</h4>
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-white">{agent.name}</h4>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{agent.id}</div>
+                        </div>
                         <Badge status={agent.status} />
                       </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{agent.description || '暂无描述'}</p>

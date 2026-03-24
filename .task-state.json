@@ -1,0 +1,41 @@
+{
+  "taskId": "task_monitor_20260324_001",
+  "projectName": "openclaw-monitor",
+  "status": "running",
+  "createdAt": "2026-03-24T11:05:00+08:00",
+  "updatedAt": "2026-03-24T11:05:00+08:00",
+  "currentPhase": "需求分析",
+  "phases": [
+    { "name": "需求分析", "status": "completed", "completedAt": "2026-03-24T11:05:00+08:00" },
+    { "name": "系统设计", "status": "completed", "completedAt": "2026-03-24T11:05:00+08:00" },
+    { "name": "开发实现", "status": "running", "startedAt": "2026-03-24T11:05:00+08:00" },
+    { "name": "系统测试", "status": "pending" },
+    { "name": "部署上线", "status": "pending" }
+  ],
+  "requirements": [
+    {
+      "id": "req_001",
+      "title": "智能体分类改为中文",
+      "description": "基于 GitHub 仓库 agency-agents-zh 的 17 个部门进行中文分类：工程部、设计部、营销部、付费媒体部、销售部、财务部、人力资源部、法务部、供应链部、产品部、项目管理部、测试部、支持部、专业部、空间计算部、游戏开发部、学术部",
+      "status": "pending"
+    },
+    {
+      "id": "req_002",
+      "title": "仪表盘显示优化",
+      "description": "最近智能体显示英文名+中文名，明确'待处理'状态含义",
+      "status": "pending"
+    },
+    {
+      "id": "req_003",
+      "title": "智能体菜单项修复",
+      "description": "分类显示中文、修复状态过滤和分类过滤无效的问题",
+      "status": "pending"
+    },
+    {
+      "id": "req_004",
+      "title": "项目菜单项优化",
+      "description": "新增'测试回归'阶段、点击项目名显示阶段列表和任务",
+      "status": "pending"
+    }
+  ]
+}

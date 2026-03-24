@@ -28,53 +28,51 @@ const AGENTS_SCRIPT_DIR = path.join(PROJECT_DIR, 'code', 'backend', 'src', 'scri
   }
 });
 
-// Category classification function
+// Category classification function - 中文分类
 function classifyAgent(agentId) {
-  if (agentId.startsWith('product-')) return 'product';
-  if (agentId.startsWith('engineering-')) return 'engineering';
-  if (agentId.startsWith('design-')) return 'design';
-  if (agentId.startsWith('testing-')) return 'test';
-  if (agentId.startsWith('academic-')) return 'other';
-  if (agentId.startsWith('agentic-')) return 'other';
-  if (agentId.startsWith('accounts-')) return 'other';
-  if (agentId.startsWith('automation-')) return 'other';
-  if (agentId.startsWith('blender-')) return 'other';
-  if (agentId.startsWith('blockchain-')) return 'other';
-  if (agentId.startsWith('compliance-')) return 'other';
-  if (agentId.startsWith('corporate-')) return 'other';
-  if (agentId.startsWith('data-')) return 'other';
-  if (agentId.startsWith('finance-')) return 'other';
-  if (agentId.startsWith('game-')) return 'other';
-  if (agentId.startsWith('gaokao-')) return 'other';
-  if (agentId.startsWith('godot-')) return 'other';
-  if (agentId.startsWith('government-')) return 'other';
-  if (agentId.startsWith('healthcare-')) return 'other';
-  if (agentId.startsWith('hr-')) return 'other';
-  if (agentId.startsWith('identity-')) return 'other';
-  if (agentId.startsWith('legal-')) return 'other';
-  if (agentId.startsWith('level-')) return 'other';
-  if (agentId.startsWith('lsp-')) return 'other';
-  if (agentId.startsWith('macos-')) return 'other';
-  if (agentId.startsWith('marketing-')) return 'other';
-  if (agentId.startsWith('narrative-')) return 'other';
-  if (agentId.startsWith('paid-')) return 'other';
-  if (agentId.startsWith('project-')) return 'other';
-  if (agentId.startsWith('prompt-')) return 'other';
-  if (agentId.startsWith('report-')) return 'other';
-  if (agentId.startsWith('roblox-')) return 'other';
-  if (agentId.startsWith('sales-')) return 'other';
-  if (agentId.startsWith('specialized-')) return 'other';
-  if (agentId.startsWith('study-')) return 'other';
-  if (agentId.startsWith('supply-')) return 'other';
-  if (agentId.startsWith('support-')) return 'other';
-  if (agentId.startsWith('technical-')) return 'other';
-  if (agentId.startsWith('terminal-')) return 'other';
-  if (agentId.startsWith('unity-')) return 'other';
-  if (agentId.startsWith('unreal-')) return 'other';
-  if (agentId.startsWith('visionos-')) return 'other';
-  if (agentId.startsWith('xr-')) return 'other';
-  if (agentId.startsWith('zk-')) return 'other';
-  return 'other';
+  if (agentId.startsWith('product-')) return '产品部';
+  if (agentId.startsWith('engineering-')) return '工程部';
+  if (agentId.startsWith('design-')) return '设计部';
+  if (agentId.startsWith('testing-')) return '测试部';
+  if (agentId.startsWith('marketing-')) return '营销部';
+  if (agentId.startsWith('paid-')) return '付费媒体部';
+  if (agentId.startsWith('sales-')) return '销售部';
+  if (agentId.startsWith('finance-')) return '财务部';
+  if (agentId.startsWith('hr-')) return '人力资源部';
+  if (agentId.startsWith('legal-')) return '法务部';
+  if (agentId.startsWith('supply-')) return '供应链部';
+  if (agentId.startsWith('project-')) return '项目管理部';
+  if (agentId.startsWith('support-')) return '支持部';
+  if (agentId.startsWith('specialized-')) return '专业部';
+  if (agentId.startsWith('academic-')) return '学术部';
+  // 游戏开发相关
+  if (agentId.startsWith('game-') || agentId.startsWith('unity-') || agentId.startsWith('unreal-') || agentId.startsWith('godot-') || agentId.startsWith('roblox-')) return '游戏开发部';
+  // 空间计算相关
+  if (agentId.startsWith('visionos-') || agentId.startsWith('xr-')) return '空间计算部';
+  // 其他分类
+  if (agentId.startsWith('agentic-')) return '专业部';
+  if (agentId.startsWith('accounts-')) return '财务部';
+  if (agentId.startsWith('automation-')) return '工程部';
+  if (agentId.startsWith('blender-')) return '设计部';
+  if (agentId.startsWith('blockchain-')) return '工程部';
+  if (agentId.startsWith('compliance-')) return '法务部';
+  if (agentId.startsWith('corporate-')) return '专业部';
+  if (agentId.startsWith('data-')) return '工程部';
+  if (agentId.startsWith('gaokao-')) return '学术部';
+  if (agentId.startsWith('government-')) return '专业部';
+  if (agentId.startsWith('healthcare-')) return '专业部';
+  if (agentId.startsWith('identity-')) return '专业部';
+  if (agentId.startsWith('level-')) return '游戏开发部';
+  if (agentId.startsWith('lsp-')) return '工程部';
+  if (agentId.startsWith('macos-')) return '工程部';
+  if (agentId.startsWith('narrative-')) return '设计部';
+  if (agentId.startsWith('prompt-')) return '专业部';
+  if (agentId.startsWith('report-')) return '专业部';
+  if (agentId.startsWith('study-')) return '学术部';
+  if (agentId.startsWith('technical-')) return '工程部';
+  if (agentId.startsWith('terminal-')) return '工程部';
+  if (agentId.startsWith('zk-')) return '工程部';
+  return '专业部';
 }
 
 // Read agent identity from IDENTITY.md
@@ -347,7 +345,8 @@ async function insertSampleData(db) {
     { id: 'stage_002', name: '系统设计', order: 2, status: 'completed' },
     { id: 'stage_003', name: '开发实现', order: 3, status: 'active' },
     { id: 'stage_004', name: '系统测试', order: 4, status: 'pending' },
-    { id: 'stage_005', name: '部署上线', order: 5, status: 'pending' }
+    { id: 'stage_005', name: '测试回归', order: 5, status: 'pending' },
+    { id: 'stage_006', name: '部署上线', order: 6, status: 'pending' }
   ];
   
   const taskData = [
@@ -515,7 +514,7 @@ async function main() {
     console.log(`   - Agents imported: ${agentCount}`);
     console.log(`   - Categories: ${Object.keys(categories).length}`);
     console.log(`   - Sample project: 1`);
-    console.log(`   - Sample stages: 5`);
+    console.log(`   - Sample stages: 6`);
     console.log(`   - Sample tasks: 10`);
     console.log(`\n📁 Files created:`);
     console.log(`   - ${DB_PATH}`);
